@@ -1,14 +1,7 @@
 #include "Airplane.h"
-
 #include <fstream>
-#include <sstream>
 #include <iostream>
-
-string date;
-string flightNumber;
-int seatsPerRow;
-vector<pair<int, int>> rowRanges;
-vector<int> prices;
+using namespace std;
 
 void Airplane::display() const {
     cout << "Date: " << date << "\n";
@@ -20,6 +13,14 @@ void Airplane::display() const {
     cout << "-------------------\n";
 }
 
+string Airplane::getFlightNumber() const {
+    return flightNumber;
+}
+
+string Airplane::getDate() const {
+    return date;
+}
+
 int Airplane::getPriceForRow(int row) const {
     for (size_t i = 0; i < rowRanges.size(); ++i) {
         if (row >= rowRanges[i].first && row <= rowRanges[i].second) {
@@ -27,4 +28,43 @@ int Airplane::getPriceForRow(int row) const {
         }
     }
     return -1;
+}
+
+vector<string> Airplane::checkSeatAvailability() const {
+    vector<string> available_seats;
+    for (const auto &seat : seat_map) {
+        if (seat.isAvailable()) {
+            available_seats.push_back(seat.getSeatInfo());
+        }
+    }
+    return available_seats;
+}
+
+bool Airplane::bookSeat(const string &seatNumber, const string &username) {
+    for (auto &seat : seat_map) {
+        if (seat.isAvailable() && seat.getSeatInfo().find(seatNumber) != string::npos) {
+            seat.book(username);
+            return true;
+        }
+    }
+    return false;
+}
+
+void Airplane::returnSeat(const string &seatNumber) {
+    for (auto &seat : seat_map) {
+        if (seat.getSeatInfo().find(seatNumber) != string::npos) {
+            seat.release();
+            return;
+        }
+    }
+}
+
+string Airplane::viewBookedTickets() const {
+    string booked_tickets;
+    for (const auto &seat : seat_map) {
+        if (!seat.isAvailable()) {
+            booked_tickets += seat.getSeatInfo() + "\n";
+        }
+    }
+    return booked_tickets.empty() ? "No booked tickets.\n" : booked_tickets;
 }

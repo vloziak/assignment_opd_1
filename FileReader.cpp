@@ -3,10 +3,11 @@
 #include <sstream>
 #include <iostream>
 
+using namespace std;
+
 vector<Airplane> FileReader::readRecords(const string& filePath) {
     vector<Airplane> records;
     ifstream file(filePath);
-
     if (!file.is_open()) {
         cerr << "Failed to open file: " << filePath << endl;
         return records;
@@ -14,21 +15,29 @@ vector<Airplane> FileReader::readRecords(const string& filePath) {
 
     string line;
     while (getline(file, line)) {
-        Airplane record;
         istringstream stream(line);
+        string flightNumber, date;
+        int seatsPerRow;
 
-        stream >> record.date >> record.flightNumber >> record.seatsPerRow;
+        stream >> date >> flightNumber >> seatsPerRow;
+
+        vector<Seat> seatMap;
 
         int startRow, endRow, price;
         char dollarSign;
         while (stream >> startRow >> dollarSign >> endRow >> price >> dollarSign) {
-            record.rowRanges.emplace_back(startRow, endRow);
-            record.prices.push_back(price);
+            for (int row = startRow; row <= endRow; ++row) {
+                for (char seatLetter = 'A'; seatLetter < 'A' + seatsPerRow; ++seatLetter) {
+                    string seatInfo = to_string(row) + seatLetter;
+                    seatMap.emplace_back(seatInfo, price);
+                }
+            }
         }
 
-        records.push_back(record);
+        Airplane airplane(flightNumber, date, seatsPerRow, seatMap);
+        records.push_back(airplane);
     }
 
-file.close();
-return records;
+    file.close();
+    return records;
 }
